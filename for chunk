@@ -1,0 +1,45 @@
+def recursive_chunk(text: str, chunk_size: int = 800, min_chunk_size: int = 200) -> list:
+    def split_recursively(t: str) -> list:
+        if len(t) <= chunk_size:
+            return [t]
+
+        for sep in ["\n\n", ".", " "]:
+            parts = t.split(sep)
+            if len(parts) == 1:
+                continue
+
+            chunks = []
+            current = ""
+            for part in parts:
+                if current and len(current) + len(part) + len(sep) > chunk_size:
+                    chunks.append(current.strip())
+                    current = ""
+                current += part + sep
+
+            if current.strip():
+                chunks.append(current.strip())
+
+            if all(len(c) <= chunk_size for c in chunks):
+                return chunks
+
+        return [t[i:i + chunk_size] for i in range(0, len(t), chunk_size)]
+
+    chunks = split_recursively(text)
+    return [c for c in chunks if len(c.strip()) >= min_chunk_size]
+
+    file_paths = [
+    "combined_1.md",
+    "",
+
+]
+
+for file_path in file_paths:
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
+
+    chunks = recursive_chunk(text)
+
+    print(f"\n=== Chunks from {file_path} ===")
+    for i, chunk in enumerate(chunks):
+        print(f"\n[Chunk {i + 1}]\n{chunk}")
+        model = SentenceTransformer("all-MiniLM-L6-v2")
